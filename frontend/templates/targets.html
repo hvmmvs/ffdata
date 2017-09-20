@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<style type="text/css">
+	
+	.input-field input[type=text]:focus + label {
+     	color: #3f51b5 !important;
+	}
+
+   .input-field input[type=text]:focus {
+     	border-bottom: 1px solid #3f51b5 !important;
+     	box-shadow: 0 1px 0 0 #3f51b5 !important;
+   }
+
+   .input-field .prefix.active {
+     color: #3f51b5 !important;
+   }
+
+   .teamContainer {
+   	padding: 20px;
+   }
+</style>
+
+<div class="teamContainer">
+	<div class='row'>
+		<div class='col s6'>
+			<h4>Select Team</h4>
+		</div>
+		<div class='input-field col s3'>
+			<i class="material-icons prefix">search</i>
+          	<input id="team_search" type="text" class="validate">
+          	<label for="team_search">Team Search</label>
+		</div>
+		<div class='input-field col s3'>
+			<i class="material-icons prefix">search</i>
+          	<input id="player_search" type="text" class="validate">
+          	<label for="player_search">Player Search</label>
+		</div>
+	</div>
+	<div id='teamHolder' class='row' />
+</div>
+
+<script type="text/javascript">
+	function findImage(teamName) {		
+		name = teamName[1]
+		name = name.toLowerCase()
+		return '/static/images/logos/' + name + '.gif'
+	}
+
+	$('#team_search').keyup(function(event) {
+		searchTerm = $('#team_search').val().toLowerCase()
+		notMatches = d3.selectAll('div[class^=searchElement').filter(function(d) { 
+			return (searchTerm != d3.select(this).attr('id').slice(0, searchTerm.length).toLowerCase()) || (searchTerm != d3.select(this).attr('id').split('-')[1].slice(0, searchTerm.length).toLowerCase())
+		})
+		matches = d3.selectAll('div[class^=searchElement').filter(function(d) { 
+			return (searchTerm == d3.select(this).attr('id').slice(0, searchTerm.length).toLowerCase()) || searchTerm == d3.select(this).attr('id').split('-')[1].slice(0, searchTerm.length).toLowerCase()
+		})
+		notMatches.style('display', 'none')
+		matches.style('display', 'block')
+	})
+
+	teams = {{teams|safe}}
+	elements = d3.select('#teamHolder').selectAll('div').data(teams).enter()
+			  .append('div').attr('class', 'searchElement col s2')
+			  .attr('id', function(d) { return d[0] + '-' + d[1]})
+			  
+	cards = elements.append('div').attr('class', 'card')
+			  // .attr('id', function(d) { return d[0] + '-' + d[1]})
+			  .style('cursor', 'pointer')
+			  .on('click', function(d) {
+			  	window.location = '/team_targets/' + d[1]
+			  })
+	cardImage = cards.append('div').attr('class', 'card-image')
+	cardImage.append('img').attr('src', function(d) { return findImage(d) })
+	cardContent = cards.append('div').attr('class', 'card-content')
+	cardContent.append('p').text(function(d) { return d[0] }).style('color', 'black').style('font-size', '12')
+	cardContent.append('p').text(function(d) { return d[1] }).style('color', 'black').style('font-size', '12')
+</script>
+
+{% endblock %}
