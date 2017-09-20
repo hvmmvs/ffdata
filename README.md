@@ -1,1 +1,1 @@
-fantasy football stuff and more
+fantasy football stuff
