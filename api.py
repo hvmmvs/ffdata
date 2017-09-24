@@ -1,4 +1,5 @@
 import nflgame
+import numpy as np
 
 def get_team_plays(team, week=None):
 	games = nflgame.games(2017, home=team, away=team, week=week)
@@ -18,6 +19,14 @@ def receiving_targets(game, team):
 	team_plays = plays.filter(team=team)
 	receiving_targets = {str(i.name): i.receiving_tar for i in team_plays.receiving()}
 	return receiving_targets
+
+def get_team_schedule(team, year):
+	team_games = np.array(nflgame.sched.games.values())[
+		map(lambda x: 
+			(x['away'] == team or x['home'] == team) and 
+			(x['year'] == year and x['season_type'] == 'REG')
+		, nflgame.sched.games.values())]
+	return team_games
 
 # def pass_targets(team_plays):
 # 	receiving_targets = {}

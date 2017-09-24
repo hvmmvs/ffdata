@@ -59,6 +59,10 @@
 		matches.style('display', 'block')
 	})
 
+	$('#player_search').keyup(function(event) {
+		console.log('this does nothing')
+	})
+
 	teams = {{teams|safe}}
 	elements = d3.select('#teamHolder').selectAll('div').data(teams).enter()
 			  .append('div').attr('class', 'searchElement col s2')

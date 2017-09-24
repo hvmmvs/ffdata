@@ -4,47 +4,82 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js"></script>
 
-<body>
-	<div class='center-align'>
-		<h4>{{team}}</h4>
-	    <div id="canvas-holder" style="width:100%; height:60%">
-	        <canvas id="chart-area" />
-	    </div>
-	</div>
-    
-    <script>
-		data = {{data|safe}}
-		bg = {{background_colors|safe}}
-		labels = {{labels|safe}}
 
-		plotData = []
-		for (var i = 0; i<data.length; i++) {
-			plotData.push({data: data[i], backgroundColor: bg, label: 'Week ' + (i+1), labelColor: 'white', labelFontSize: 16})
+<div class='center-align'>
+	<h4>{{team}}</h4>
+</div>
+<div id='schedule'></div>
+<div class='center-align'>
+    <div id="canvas-holder" style="width:100%; height:60%">
+        <canvas id="chart-area" />
+    </div>
+</div>
+
+<script>
+	function determineOpponent(d, teamInitials) {
+		if (d.away == teamInitials) {
+			return d.home
+		} else {
+			return d.away
 		}
-	    
-	    var config = {
-	        type: 'doughnut',
-	        data: {
-	            datasets: plotData,
-	            labels: labels
-	        },
-	        options: {
-	            responsive: true,
-	            legend: {
-	                position: 'top',
-	            },
-	            animation: {
-	                animateScale: true,
-	                animateRotate: true
-	            }
-	        }
-	    };
-	    window.onload = function() {
-	        var ctx = document.getElementById("chart-area").getContext("2d");
-	        window.myDoughnut = new Chart(ctx, config);
-	    };
-    </script>
-</body>
+	}
+
+	data = {{data|safe}}
+	bg = {{background_colors|safe}}
+	labels = {{labels|safe}}
+	schedule = {{schedule|safe}}
+	teamInitials = "{{teamInitials}}"
+
+	plotData = []
+	for (var i = 0; i<data.length; i++) {
+		plotData.push({
+			data: data[i], 
+			backgroundColor: bg, 
+			label: 'Week ' + (i+1), 
+			labelColor: 'white', labelFontSize: 16,
+			week: i+1
+		})
+	}
+    
+    var config = {
+        type: 'doughnut',
+        data: {
+            datasets: plotData,
+            labels: labels
+        },
+        options: {
+            responsive: true,
+            legend: {
+                position: 'top',
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    };
+    window.onload = function() {
+        var ctx = document.getElementById("chart-area").getContext("2d");
+        window.myDoughnut = new Chart(ctx, config);
+    };
+
+    function modPlot(index) {
+    	for (var i=config.data.datasets.length-1; i>=0; i--) {
+    		if (config.data.datasets[i].week != index) {
+    			config.data.datasets.splice(i, 1)
+    		}
+    	}
+    	// config.data.datasets.splice(index-1, index);
+        window.myDoughnut.update();
+    }
+
+    schedule_elements = d3.select('#schedule').selectAll('div').data(schedule).enter().append('div')
+    schedule_elements.style('width', '6.25%').style('display', 'inline').append('img').attr('src', function(d) { return '/static/images/logos/' + determineOpponent(d, teamInitials) + '.gif'}).style('width', '6.25%').style('border-radius', '.5').style('padding', '5').style('cursor', 'pointer').on('click', function(d) {
+    	modPlot(d.week)
+    })
+
+</script>
+
 
 </html>
 

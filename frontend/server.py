@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
 
 import nflgame
+import numpy as np
 
 from ff import app, api
 
@@ -11,13 +12,26 @@ COLORS = ['#e53935', '#9c27b0', '#e91e63', '#3f51b5',
 		  '#00bcd4', '#8bc34a', '#4caf50', '#ffeb3b',  
 		  '#cddc39', '#ff8c00', '#ffc107', '#ff5722']
 
+def convert(input):
+    if isinstance(input, dict):
+        return {convert(key): convert(value) for key, value in input.iteritems()}
+    elif isinstance(input, (list, np.ndarray)):
+        return [convert(element) for element in input]
+    elif isinstance(input, unicode):
+        return input.encode('utf-8')
+    elif isinstance(input, bool):
+        print input
+        return str(input)
+    else:
+        return input
+
 @app.route('/')
 def index():
 	return render_template('index.html')
 
 @app.route('/targets')
 def targets():
-	teams = [[t[1], t[2]] for t in nflgame.teams]
+	teams = [[t[1], t[2], t[0]] for t in nflgame.teams]
 	teams[21] = ['New York', 'Jets']
 	teams[22] = ['New York', 'Giants']
 	return render_template('targets.html', teams=teams)
@@ -41,7 +55,10 @@ def team_targets(team):
 	 			for player_dict in target_dict.values()]
 	background_colors = COLORS[:len(all_players)]
 	labels = map(str, all_players)
-	return render_template('team_targets.html', team=team, data=data, background_colors=background_colors, labels=labels)
+
+	schedule = api.get_team_schedule(team_initials, 2017)
+	print team_initials
+	return render_template('team_targets.html', team=team, data=data, background_colors=background_colors, labels=labels, schedule=convert(schedule), teamInitials=team_initials)
 
 if __name__ == "__main__":
     app.debug = True
